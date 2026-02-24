@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korek Private Primary School</title>
+    
+    <!-- Fonts: Poppins for English, Noto Sans Arabic/Cairo for Arabic/Kurdish -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Noto+Sans+Arabic:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* --- VARIABLES & RESET --- */
+        :root {
+            /* Dark Blue & Dark Brown Theme */
+            --primary-blue: #0F172A;    /* Deep Navy Background */
+            --secondary-blue: #1E293B;  /* Lighter Navy for Cards */
+            --accent-brown: #5D4037;    /* Rich Earthy Brown */
+            --light-brown: #8D6E63;     /* Lighter Brown for text/accents */
+            --gold: #D4AF37;            /* Subtle Gold highlight */
+            --white: #F8FAFC;
+            --text-muted: #94A3B8;
+            
+            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--white);
+            background-color: var(--primary-blue);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* RTL Font Adjustments */
+        [dir="rtl"] body { font-family: 'Noto Sans Arabic', 'Cairo', sans-serif; }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 1rem;
+        }
+        
+        [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3 { font-family: 'Noto Sans Arabic', 'Cairo', sans-serif; font-weight: 800; }
+
+        a { text-decoration: none; color: inherit; transition: var(--transition); }
+        ul { list-style: none; }
+        img { width: 100%; display: block; object-fit: cover; }
+
+        /* --- UTILITIES --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .section-padding { padding: 100px 0; }
+        .text-center { text-align: center; }
+        .text-gold { color: var(--gold); }
+        .text-brown { color: var(--light-brown); }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            transition: var(--transition);
+            background: var(--accent-brown);
+            color: var(--white);
+            border: 1px solid var(--accent-brown);
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--accent-brown);
+            box-shadow: 0 0 15px rgba(93, 64, 55, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--white);
+        }
+        
+        .btn-outline:hover {
+            background: var(--white);
+            color: var(--primary-blue);
+        }
+
+        /* --- 3D BACKGROUND --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* --- NAVIGATION --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 20px 0;
+            transition: var(--transition);
+            backdrop-filter: blur(15px);
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-container { display: flex; justify-content: space-between; align-items: center; }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i { color: var(--accent-brown); font-size: 1.8rem; }
+
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        
+        .nav-links li a {
+            color: var(--white);
+            font-weight: 500;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        
+        [dir="rtl"] .nav-links li a { font-family: 'Noto Sans Arabic', 'Cairo', sans-serif; }
+
+        .nav-links li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--accent-brown);
+            transition: var(--transition);
+        }
+        
+        [dir="ltr"] .nav-links li a::after { left: 0; }
+        [dir="rtl"] .nav-links li a::after { right: 0; left: auto; }
+
+        .nav-links li a:hover::after { width: 100%; }
+
+        .lang-select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--accent-brown);
+            color: var(--white);
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Noto Sans Arabic', 'Cairo', sans-serif;
+        }
+
+        .hamburger { display: none; color: var(--white); font-size: 1.5rem; cursor: pointer; }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: center;
+            padding-top: 80px;
+            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), 
+                        url('https://z-cdn-media.chatglm.cn/files/fd164ae6-8153-457c-ba7f-87a50a88b312.jpeg?auth_key=1871970915-0ec6750a0bc64a9d91216632d1e98b6c-0-d8bee50b31ab2b068401d0238ce20907'); /* IMG_3401: Playground */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: var(--primary-blue); /* Fallback */
+        }
+
+        .hero-content {
+            z-index: 2;
+            max-width: 900px;
+            padding: 40px;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        
+        .hero h1 span { color: var(--accent-brown); }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            color: #E2E8F0;
+        }
+
+        /* --- ABOUT US --- */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-img-group {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* Using IMG_3403: Group Photo */
+        .main-img { 
+            height: 500px; 
+            width: 100%; 
+            object-fit: cover; 
+            transition: transform 0.5s ease; 
+        }
+        
+        .about-img-group:hover .main-img { transform: scale(1.05); }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: var(--accent-brown);
+            margin: 10px auto 0; /* Centered for both LTR and RTL */
+        }
+
+        /* --- ACADEMIC PROGRAMS --- */
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .program-card {
+            background: var(--secondary-blue);
+            border-radius: 15px;
+            padding: 40px 30px;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .program-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-brown);
+            box-shadow: 0 10px 30px rgba(93, 64, 55, 0.2);
+        }
+
+        .program-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--accent-brown);
+        }
+        
+        /* RTL Border Side */
+        [dir="rtl"] .program-card::before { left: auto; right: 0; }
+
+        /* --- FACILITIES --- */
+        .facility-card {
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            height: 300px;
+            group: cursor-pointer;
+        }
+
+        .facility-card img {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s ease;
+        }
+
+        .facility-card:hover img { transform: scale(1.1); }
+
+        .facility-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(15, 23, 42, 0.95));
+        }
+
+        /* --- CONTACT --- */
+        .contact-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            background: var(--secondary-blue);
+            padding: 50px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .contact-info, .contact-form { flex: 1; min-width: 300px; }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        [dir="rtl"] .info-item { flex-direction: row-reverse; text-align: right; }
+
+        .info-icon {
+            width: 50px; height: 50px;
+            background: var(--accent-brown);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--white);
+            font-size: 1.2rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--white);
+            margin-bottom: 20px;
+            font-family: inherit;
+        }
+        
+        input:focus, textarea:focus { outline: none; border-color: var(--accent-brown); }
+
+        /* --- FOOTER --- */
+        footer {
+            background: #020617;
+            padding: 70px 0 20px;
+            margin-top: 50px;
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; }
+        .footer-logo { font-size: 1.5rem; color: var(--white); font-weight: bold; margin-bottom: 20px; display: block; }
+        
+        .social-icons a {
+            display: inline-flex;
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.1);
+            color: var(--white);
+            align-items: center; justify-content: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            transition: 0.3s;
+        }
+        
+        [dir="rtl"] .social-icons a { margin-right: 0; margin-left: 10px; }
+        
+        .social-icons a:hover { background: var(--accent-brown); }
+
+        /* --- TOAST --- */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: var(--accent-brown);
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 2000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 17px;
+        }
+
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2rem; }
+            .about-grid { grid-template-columns: 1fr; }
+            .nav-links {
+                position: fixed; top: 0; right: -100%;
+                width: 80%; height: 100vh;
+                background: var(--secondary-blue);
+                flex-direction: column;
+                justify-content: center;
+                transition: 0.4s;
+            }
+            [dir="rtl"] .nav-links { right: auto; left: -100%; }
+            .nav-links.active { right: 0; }
+            [dir="rtl"] .nav-links.active { left: 0; }
+            .hamburger { display: block; z-index: 1001; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <i class="fas fa-school"></i>
+                <span data-i18n="logo">Korek School</span>
+            </a>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#home" data-i18n="home">Home</a></li>
+                <li><a href="#about" data-i18n="about">About</a></li>
+                <li><a href="#academics" data-i18n="academics">Academics</a></li>
+                <li><a href="#facilities" data-i18n="facilities">Facilities</a></li>
+                <li><a href="#contact" data-i18n="contact">Contact</a></li>
+                <li>
+                    <select class="lang-select" onchange="changeLanguage(this.value)">
+                        <option value="en">English</option>
+                        <option value="ku">کوردی (Kurdish)</option>
+                        <option value="ar">العربية (Arabic)</option>
+                    </select>
+                </li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h4 class="text-brown" data-i18n="hero_sub">Welcome to Excellence</h4>
+            <h1 data-i18n="hero_title">Korek Private Primary School</h1>
+            <p data-i18n="hero_desc">Providing a high-quality bilingual education in a safe, modern environment.</p>
+            <div>
+                <a href="#contact" class="btn" data-i18n="contact_btn">Contact Us</a>
+                <a href="#about" class="btn btn-outline" data-i18n="learn_btn">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section-padding">
+        <div class="container">
+            <div class="about-grid">
+                <div class="reveal">
+                    <h4 class="text-brown" data-i18n="who_we_are">Who We Are</h4>
+                    <h2 class="section-title" data-i18n="about_title">A Foundation for the Future</h2>
+                    <p class="text-muted" style="margin-bottom: 20px;" data-i18n="about_p1">
+                        Korek Private Primary School is dedicated to fostering academic excellence and strong moral character. Located in the heart of the region, we provide a curriculum that respects local culture while embracing global standards.
+                    </p>
+                    <p class="text-muted" style="margin-bottom: 20px;" data-i18n="about_p2">
+                        We believe in every child's potential. Our modern campus and experienced staff ensure that students receive the best start in life.
+                    </p>
+                    
+                    <div style="margin-top: 30px;">
+                        <div style="margin-bottom: 15px;">
+                            <h5 class="text-white"><i class="fas fa-check-circle text-brown"></i> <span data-i18n="feature1">Bilingual Curriculum</span></h5>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <h5 class="text-white"><i class="fas fa-check-circle text-brown"></i> <span data-i18n="feature2">Modern Facilities</span></h5>
+                        </div>
+                        <div>
+                            <h5 class="text-white"><i class="fas fa-check-circle text-brown"></i> <span data-i18n="feature3">Experienced Teachers</span></h5>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-img-group reveal">
+                    <!-- IMG_3403: Students in Uniforms (Group Photo) -->
+                    <img src="https://z-cdn-media.chatglm.cn/files/3cdd369a-f694-4859-9f2f-b2c92ffcdc67.jpeg?auth_key=1871970915-606e59abe8a7405d9f23a7a39cb10f75-0-53959465fc095bcf65a99d9875b6e69d" alt="Students" class="main-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Academics -->
+    <section id="academics" class="section-padding" style="background: rgba(0,0,0,0.2);">
+        <div class="container">
+            <div class="text-center reveal" style="margin-bottom: 50px;">
+                <h4 class="text-brown" data-i18n="academics_sub">Our Programs</h4>
+                <h2 class="section-title" data-i18n="academics_title">Academic Excellence</h2>
+            </div>
+
+            <div class="programs-grid">
+                <div class="program-card reveal">
+                    <i class="fas fa-shapes text-brown" style="font-size: 2.5rem; margin-bottom: 20px;"></i>
+                    <h3 data-i18n="prog_kg">Kindergarten</h3>
+                    <p class="text-muted" style="font-size: 0.9rem;" data-i18n="prog_kg_desc">Play-based learning to develop social and cognitive skills.</p>
+                </div>
+
+                <div class="program-card reveal">
+                    <i class="fas fa-book-open text-brown" style="font-size: 2.5rem; margin-bottom: 20px;"></i>
+                    <h3 data-i18n="prog_primary">Primary Grades</h3>
+                    <p class="text-muted" style="font-size: 0.9rem;" data-i18n="prog_primary_desc">Strong focus on literacy, numeracy, and science in two languages.</p>
+                </div>
+
+                <div class="program-card reveal">
+                    <i class="fas fa-language text-brown" style="font-size: 2.5rem; margin-bottom: 20px;"></i>
+                    <h3 data-i18n="prog_lang">Languages</h3>
+                    <p class="text-muted" style="font-size: 0.9rem;" data-i18n="prog_lang_desc">Intensive English and Kurdish instruction, with Arabic basics.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Facilities (Using User Images) -->
+    <section id="facilities" class="section-padding">
+        <div class="container">
+            <div class="text-center reveal" style="margin-bottom: 50px;">
+                <h4 class="text-brown" data-i18n="facilities_sub">Campus Life</h4>
+                <h2 class="section-title" data-i18n="facilities_title">Our Facilities</h2>
+            </div>
+
+            <div class="programs-grid">
+                <!-- IMG_3404: Basketball Court -->
+                <div class="facility-card reveal">
+                    <img src="https://z-cdn-media.chatglm.cn/files/cb36e114-39da-420c-83b7-70a10a0129b9.jpeg?auth_key=1871970915-e62146eb642b46419ff92d2a99447a34-0-c015db6c25f3b812559c2edf07a2982e" alt="Basketball Court">
+                    <div class="facility-overlay">
+                        <h3 data-i18n="fac_sport">Sports Complex</h3>
+                    </div>
+                </div>
+
+                <!-- IMG_3402: School Building -->
+                <div class="facility-card reveal">
+                    <img src="https://z-cdn-media.chatglm.cn/files/7359bf6e-c2c3-401c-9b8d-25ebeffadbf7.jpeg?auth_key=1871970915-0b271133dfe94cf4a9b18fcefbcfcc1f-0-32aa5f74b8ef92d348d839a8905a0ccd" alt="School Building">
+                    <div class="facility-overlay">
+                        <h3 data-i18n="fac_campus">Modern Campus</h3>
+                    </div>
+                </div>
+
+                <!-- IMG_3401: Playground/Event -->
+                <div class="facility-card reveal">
+                    <img src="https://z-cdn-media.chatglm.cn/files/fd164ae6-8153-457c-ba7f-87a50a88b312.jpeg?auth_key=1871970915-0ec6750a0bc64a9d91216632d1e98b6c-0-d8bee50b31ab2b068401d0238ce20907" alt="Playground">
+                    <div class="facility-overlay">
+                        <h3 data-i18n="fac_play">Playground & Events</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section-padding" style="background: rgba(0,0,0,0.2);">
+        <div class="container">
+            <div class="text-center reveal" style="margin-bottom: 50px;">
+                <h4 class="text-brown" data-i18n="contact_sub">Get in Touch</h4>
+                <h2 class="section-title" data-i18n="contact_title">Contact Us</h2>
+            </div>
+            
+            <div class="contact-wrapper reveal">
+                <div class="contact-info">
+                    <h3 style="margin-bottom: 30px;" data-i18n="visit_us">Visit Us</h3>
+                    
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div>
+                            <h5 data-i18n="address_label">Address</h5>
+                            <p class="text-muted" data-i18n="address_val">Soran, Erbil, Kurdistan Region, Iraq</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-phone-alt"></i></div>
+                        <div>
+                            <h5 data-i18n="phone_label">Phone</h5>
+                            <p class="text-muted">0751 470 5441-2-3</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-clock"></i></div>
+                        <div>
+                            <h5 data-i18n="hours_label">Working Hours</h5>
+                            <p class="text-muted" data-i18n="hours_val">Sun - Thu: 8:00 AM - 3:00 PM</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form">
+                    <h3 style="margin-bottom: 20px;" data-i18n="send_msg">Send a Message</h3>
+                    <form onsubmit="handleFormSubmit(event)">
+                        <input type="text" placeholder="Name / ناو" required>
+                        <input type="email" placeholder="Email / ئیمەیڵ" required>
+                        <input type="text" placeholder="Phone / تەلەفۆن">
+                        <textarea rows="4" placeholder="Message / نامە" required></textarea>
+                        <button type="submit" class="btn" data-i18n="submit_btn">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <span class="footer-logo">Korek Private Primary</span>
+                    <p class="text-muted" style="margin-bottom: 20px;" data-i18n="footer_desc">Empowering the next generation with knowledge and integrity.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-brown" data-i18n="quick_links">Quick Links</h4>
+                    <ul style="line-height: 2;">
+                        <li><a href="#about" data-i18n="about">About Us</a></li>
+                        <li><a href="#academics" data-i18n="academics">Academics</a></li>
+                        <li><a href="#contact" data-i18n="contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-brown" data-i18n="contact_title">Contact</h4>
+                    <p class="text-muted">0751 470 5441-2-3</p>
+                    <p class="text-muted">info@korekschool.iq</p>
+                </div>
+            </div>
+            <div class="text-center text-muted" style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+                &copy; 2024 Korek Private Primary School. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <div id="toast" data-i18n="toast_msg">Message Sent Successfully!</div>
+
+    <script>
+        // --- 1. LANGUAGE SYSTEM ---
+        const translations = {
+            en: {
+                logo: "Korek School",
+                home: "Home",
+                about: "About Us",
+                academics: "Academics",
+                facilities: "Facilities",
+                contact: "Contact",
+                hero_sub: "Welcome to Excellence",
+                hero_title: "Korek Private Primary School",
+                hero_desc: "Providing a high-quality bilingual education in a safe, modern environment.",
+                contact_btn: "Contact Us",
+                learn_btn: "Learn More",
+                who_we_are: "Who We Are",
+                about_title: "A Foundation for the Future",
+                about_p1: "Korek Private Primary School is dedicated to fostering academic excellence and strong moral character. Located in the heart of the region, we provide a curriculum that respects local culture while embracing global standards.",
+                about_p2: "We believe in every child's potential. Our modern campus and experienced staff ensure that students receive the best start in life.",
+                feature1: "Bilingual Curriculum",
+                feature2: "Modern Facilities",
+                feature3: "Experienced Teachers",
+                academics_sub: "Our Programs",
+                academics_title: "Academic Excellence",
+                prog_kg: "Kindergarten",
+                prog_kg_desc: "Play-based learning to develop social and cognitive skills.",
+                prog_primary: "Primary Grades",
+                prog_primary_desc: "Strong focus on literacy, numeracy, and science in two languages.",
+                prog_lang: "Languages",
+                prog_lang_desc: "Intensive English and Kurdish instruction, with Arabic basics.",
+                facilities_sub: "Campus Life",
+                facilities_title: "Our Facilities",
+                fac_sport: "Sports Complex",
+                fac_campus: "Modern Campus",
+                fac_play: "Playground & Events",
+                contact_sub: "Get in Touch",
+                contact_title: "Contact Us",
+                visit_us: "Visit Us",
+                address_label: "Address",
+                address_val: "Soran, Erbil, Kurdistan Region, Iraq",
+                phone_label: "Phone",
+                hours_label: "Working Hours",
+                hours_val: "Sun - Thu: 8:00 AM - 3:00 PM",
+                send_msg: "Send a Message",
+                submit_btn: "Send Message",
+                footer_desc: "Empowering the next generation with knowledge and integrity.",
+                quick_links: "Quick Links",
+                toast_msg: "Message Sent Successfully!"
+            },
+            ku: {
+                logo: "قوتابخانەی کۆریک",
+                home: "سەرەتا",
+                about: "دەربارەی ئێمە",
+                academics: "خوێندن",
+                facilities: "دامەزراوەکان",
+                contact: "پەیوەندی",
+                hero_sub: "بەخێربێن بۆ قوتابخانەی کۆریک",
+                hero_title: "قوتابخانەی سەرەتایی تایبەتی کۆریک",
+                hero_desc: "خوێندنی باڵا و دوو زمانی لە ژینگەیەکی ئاسایش و مۆدێرندا.",
+                contact_btn: "پەیوەندی پێوە بکەن",
+                learn_btn: "زیاتر بزانە",
+                who_we_are: "ئێمە کێین",
+                about_title: "بنەمایەک بۆ داھاتوو",
+                about_p1: "قوتابخانەی سەرەتایی تایبەتی کۆریک بە پلەی یەکەم هەوڵ دەدات بۆ پەروەردەکردنی قوتابیان لە ڕووی زانست و ڕەوشتی تایبەتییەوە. لە ناوچەکەدا دەستنیشان کراوین، پرۆگرامی خوێندنمان ڕێزی بۆ کولتووری خۆماڵی دەگرێت و لە یەککاتدا پێوانە جیهانییەکان جێبەجێ دەکات.",
+                about_p2: "ئێمە باوەڕمان بە توانای هەر منداڵێک هەیە. حەوشەی مۆدێرن و مامۆستای شارەزای ئێمە دڵنیا دەکەینەوە کە قوتابیان باشترین دەستپێک وەردەگرن.",
+                feature1: "خولی دوو زمانی",
+                feature2: "دامەزراوە مۆدێرنەکان",
+                feature3: "مامۆستای شارەزا",
+                academics_sub: "پرۆگرامەکان",
+                academics_title: "پلەی زانستی بەرز",
+                prog_kg: "باخچەی منداڵان",
+                prog_kg_desc: "فێربوون بە یاری بۆ گەشەپێدانی کەسایەتی و زانیاری.",
+                prog_primary: "قۆناغی سەرەتایی",
+                prog_primary_desc: "سەرنجێکی زۆر لە نووسین، خوێندنەوە و زانست لە دوو زماندا.",
+                prog_lang: "زمانەکان",
+                prog_lang_desc: "خوێندنی بەهێزی ئینگلیزی و کوردی، لەگەڵ بنەماکانی عەرەبی.",
+                facilities_sub: "ژیانی قوتابخانە",
+                facilities_title: "دامەزراوەکانی ئێمە",
+                fac_sport: "مەیدانی وەرزشی",
+                fac_campus: "حەوشەی مۆدێرن",
+                fac_play: "یاریگا و بۆنەکان",
+                contact_sub: "پەیوەندی پێوە بکەن",
+                contact_title: "پەیوەندی",
+                visit_us: "سەردانی ئێمە بکەن",
+                address_label: "ناونیشان",
+                address_val: "سۆران، پارێزگای هەولێر، عێراق",
+                phone_label: "تەلەفۆن",
+                hours_label: "کاتی کارکردن",
+                hours_val: "یەکشەممە - پێنجشەممە: 8:00 بەیانی - 3:00 ئێوارە",
+                send_msg: "نامە بنێرە",
+                submit_btn: "ناردن",
+                footer_desc: "ئامادەکردنی نەوەی داھاتوو بە زانست و ڕۆحێکی گەورە.",
+                quick_links: "بەستەرە خێراکان",
+                toast_msg: "نامەکە بە سەرکەوتووی نێردرا!"
+            },
+            ar: {
+                logo: "مدرسة كوريك",
+                home: "الرئيسية",
+                about: "من نحن",
+                academics: "الأكاديميون",
+                facilities: "المرافق",
+                contact: "اتصل بنا",
+                hero_sub: "مرحباً بكم في التميز",
+                hero_title: "مدرسة كوريك الابتدائية الخاصة",
+                hero_desc: "توفير تعليم ثنائي اللغة عالي الجودة في بيئة آمنة وحديثة.",
+                contact_btn: "اتصل بنا",
+                learn_btn: "اعرف المزيد",
+                who_we_are: "من نحن",
+                about_title: "أساس للمستقبل",
+                about_p1: "تكرس مدرسة كوريك الابتدائية الخاصة نفسها لتعزيز التميز الأكاديمي والخلق القوي. تقع في قلب المنطقة، ونحن نقدم منهجًا يحترم الثقافة المحلية مع تبني المعايير العالمية.",
+                about_p2: "نحن نؤمن بإمكانات كل طفل. يضمن حرمينا الجامعي الحديث وموظفونا ذوو الخبرة أن يحصل الطلاب على أفضل بداية في الحياة.",
+                feature1: "منهج ثنائي اللغة",
+                feature2: "مرافق حديثة",
+                feature3: "معلمون ذوو خبرة",
+                academics_sub: "برامجنا",
+                academics_title: "التميز الأكاديمي",
+                prog_kg: "رياض الأطفال",
+                prog_kg_desc: "التعلم القائم على اللعب لتطوير المهارات الاجتماعية والمعرفية.",
+                prog_primary: "المرحلة الابتدائية",
+                prog_primary_desc: "تركيز قوي على محو الأمية والعدد والعلوم بلغتين.",
+                prog_lang: "اللغات",
+                prog_lang_desc: "تعليم مكثف باللغتين الإنجليزية والكردية، مع أساسيات اللغة العربية.",
+                facilities_sub: "الحياة الجامعية",
+                facilities_title: "مرافقنا",
+                fac_sport: "مجمع رياضي",
+                fac_campus: "حرم جامعي حديث",
+                fac_play: "ساحة اللعب والفعاليات",
+                contact_sub: "تواصل معنا",
+                contact_title: "اتصل بنا",
+                visit_us: "زورونا",
+                address_label: "العنوان",
+                address_val: "سوران، أربيل، إقليم كردستان، العراق",
+                phone_label: "هاتف",
+                hours_label: "ساعات العمل",
+                hours_val: "الأحد - الخميس: 8:00 صباحاً - 3:00 مساءً",
+                send_msg: "أرسل رسالة",
+                submit_btn: "إرسال الرسالة",
+                footer_desc: "تمكين الجيل القادم بالمعرفة والنزاهة.",
+                quick_links: "روابط سريعة",
+                toast_msg: "تم إرسال الرسالة بنجاح!"
+            }
+        };
+
+        function changeLanguage(lang) {
+            const htmlTag = document.documentElement;
+            
+            // Set Direction and Lang
+            if (lang === 'ar' || lang === 'ku') {
+                htmlTag.setAttribute('dir', 'rtl');
+                htmlTag.setAttribute('lang', lang);
+            } else {
+                htmlTag.setAttribute('dir', 'ltr');
+                htmlTag.setAttribute('lang', 'en');
+            }
+
+            // Update Text Content
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+        }
+
+        // --- 2. UI LOGIC ---
+
+        // Mobile Menu
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('nav-links');
+        
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.nav-links li a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Scroll Animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Form Handler
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            e.target.reset();
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // --- 3. THREE.JS BACKGROUND (Blue & Brown Theme) ---
+        const initThreeJS = () => {
+            const canvas = document.getElementById('bg-canvas');
+            if (!canvas) return; // Safety check
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Particles (Dark Blue and Brown tones)
+            const geometry = new THREE.BufferGeometry();
+            const particlesCount = 400;
+            const posArray = new Float32Array(particlesCount * 3);
+            const colorsArray = new Float32Array(particlesCount * 3);
+
+            const color1 = new THREE.Color(0x5D4037); // Brown
+            const color2 = new THREE.Color(0x5499C7); // Soft Blue
+
+            for(let i = 0; i < particlesCount * 3; i+=3) {
+                posArray[i] = (Math.random() - 0.5) * 30;   // x
+                posArray[i+1] = (Math.random() - 0.5) * 30; // y
+                posArray[i+2] = (Math.random() - 0.5) * 30; // z
+
+                // Mix colors
+                const mixedColor = Math.random() > 0.5 ? color1 : color2;
+                colorsArray[i] = mixedColor.r;
+                colorsArray[i+1] = mixedColor.g;
+                colorsArray[i+2] = mixedColor.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.08,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6
+            });
+
+            const particlesMesh = new THREE.Points(geometry, material);
+            scene.add(particlesMesh);
+
+            // Add some geometric lines
+            const lineGeo = new THREE.IcosahedronGeometry(10, 1);
+            const lineMat = new THREE.MeshBasicMaterial({ 
+                color: 0x5D4037, 
+                wireframe: true, 
+                transparent: true, 
+                opacity: 0.03 
+            });
+            const sphere = new THREE.Mesh(lineGeo, lineMat);
+            scene.add(sphere);
+
+            camera.position.z = 10;
+
+            // Animation
+            let mouseX = 0;
+            let mouseY = 0;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = event.clientX / window.innerWidth - 0.5;
+                mouseY = event.clientY / window.innerHeight - 0.5;
+            });
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                
+                particlesMesh.rotation.y += 0.001;
+                particlesMesh.rotation.x += 0.0005;
+
+                sphere.rotation.y -= 0.002;
+
+                // Parallax
+                particlesMesh.rotation.x += mouseY * 0.01;
+                particlesMesh.rotation.y += mouseX * 0.01;
+
+                renderer.render(scene, camera);
+            };
+
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+
+        window.onload = initThreeJS;
+
+    </script>
+</body>
+</html>
